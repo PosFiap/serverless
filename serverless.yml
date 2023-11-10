@@ -47,13 +47,13 @@ resources:
       Properties:
         UserPoolName: user-pool-${sls:stage}
         Schema:
-          - Name: cpf
+          - Name: email
             Required: true
-            Mutable: false
+            Mutable: true
         Policies:
           PasswordPolicy:
             MinimumLength: 6
-        # AutoVerifiedAttributes: ["cpf"]
+        AutoVerifiedAttributes: ["cpf"]
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
