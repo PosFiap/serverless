@@ -53,7 +53,7 @@ resources:
         Policies:
           PasswordPolicy:
             MinimumLength: 6
-        AutoVerifiedAttributes: ["cpf"]
+        AutoVerifiedAttributes: ["email"]
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
