@@ -12,6 +12,12 @@ provider:
       statements:
         - Effect: Allow
           Action:
+          - cognito-idp:AdminInitiateAuth
+          - cognito-idp:AdminCreateUser
+          - cognito-idp:AdminSetUserPassword
+          Resource: "*"
+        - Effect: Allow
+          Action:
             - dynamodb:Query
             - dynamodb:Scan
             - dynamodb:GetItem
@@ -22,12 +28,29 @@ provider:
             - Fn::GetAtt: [ UsersTable, Arn ]
   environment:
     USERS_TABLE: ${self:custom.tableName}
+    USER_POOL: { Ref: CognitoUserPool }
+    USER_POOL_CLIENT: { Ref: CognitoUserPoolClient }
+  httpApi:
+    cors: true
+    authorizers: 
+      userAuthoriser:
+        identitySource: $request.header.Authorization
+        issuerUrl: {"Fn::Join": ["", ["https://cognito-idp.us-east-1.amazonaws.com/", { Ref: CognitoUserPool }]]}
+        audience: { Ref: CognitoUserPoolClient }
 
 functions:
-  api:
-    handler: index.handler
+  login:
+    handler: src/handlers/login.login
     events:
-      - httpApi: '*'
+      - httpApi:
+          path: /login
+          method: post
+  register:
+    handler: src/handlers/register.register
+    events:
+      - httpApi:
+          path: /register
+          method: post
 
 resources:
   Resources:
@@ -46,10 +69,18 @@ resources:
       Type: AWS::Cognito::UserPool
       Properties:
         UserPoolName: user-pool-${sls:stage}
+        UsernameAttributes:
+          - email
         Schema:
           - Name: email
             Required: true
             Mutable: true
+          - Name: cpf
+            Mutable: true
+            AttributeDataType: String
+            StringAttributeConstraints:
+              MinLength: 11
+              MaxLength: 11
         Policies:
           PasswordPolicy:
             MinimumLength: 6
@@ -60,6 +91,8 @@ resources:
         ClientName: user-pool-client-${sls:stage}
         UserPoolId:
           Ref: CognitoUserPool
+        AccessTokenValidity: 5
+        IdTokenValidity: 5
         ExplicitAuthFlows:
           - ADMIN_NO_SRP_AUTH
         GenerateSecret: false

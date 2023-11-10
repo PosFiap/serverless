@@ -1,4 +1,0 @@
-#!/bin/bash
-export AWS_REGION='us-east-1'
-export AWS_ACCESS_KEY_ID='AKIA6KQA2WUNC7KJIMPT'
-export AWS_SECRET_ACCESS_KEY='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'
