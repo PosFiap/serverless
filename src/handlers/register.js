@@ -4,22 +4,12 @@ const { cognito } = require('../const/providers')
 
 module.exports.register = async (event) => {
     try {
-        const { email, password } = JSON.parse(event.body)
+        const { email, cpf, password } = JSON.parse(event.body)
 
         const result = await cognito
             .adminCreateUser({
                 UserPoolId: USER_POOL,
-                Username: email,
-                UserAttributes: [
-                    {
-                        Name: 'email',
-                        Value: email,
-                    },
-                    {
-                        Name: 'email_verified',
-                        Value: 'true',
-                    },
-                ],
+                Username: email ?? `${cpf}@email.com`,
                 MessageAction: 'SUPPRESS',
             })
             .promise()
@@ -27,9 +17,9 @@ module.exports.register = async (event) => {
         if (result.User) {
             await cognito
                 .adminSetUserPassword({
-                    Password: password,
+                    Password: password ??  '012345',
                     UserPoolId: USER_POOL,
-                    Username: email,
+                    Username: email ?? `${cpf}@email.com`,
                     Permanent: true,
                 })
                 .promise()

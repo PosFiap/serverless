@@ -5,7 +5,7 @@ const { cognito } = require('../const/providers')
 
 module.exports.login = async (event) => {
     try {
-        const { email, password } = JSON.parse(event.body)
+        const { email, cpf, password } = JSON.parse(event.body)
 
         const response = await cognito
             .adminInitiateAuth({
@@ -13,8 +13,8 @@ module.exports.login = async (event) => {
                 UserPoolId: USER_POOL,
                 ClientId: USER_POOL_CLIENT,
                 AuthParameters: {
-                    USERNAME: email,
-                    PASSWORD: password,
+                    USERNAME: email ?? `${cpf}@email.com`,
+                    PASSWORD: password ?? '012345',
                 },
             })
             .promise()
