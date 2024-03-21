@@ -1,14 +1,14 @@
-const sendResponse = require('../utils/sendResponse')
-const formatUserAttributes = require('../utils/formatUserAttributes')
-const { USER_POOL, USER_POOL_CLIENT } = require('../const/paths')
-const { cognito } = require('../const/providers')
+import { sendResponse } from '../utils/sendResponse.mjs'
+import { formatUserAttributes } from '../utils/formatUserAttributes.js'
+import { USER_POOL, USER_POOL_CLIENT } from '../const/paths.mjs'
+import { cognito } from '../const/providers.mjs'
 
-module.exports.login = async (event) => {
+export async function login(event) {
     try {
         const { email, cpf, password } = JSON.parse(event.body)
 
         const response = await cognito
-            .adminInitiateAuth({
+            .providerClient.send(new cognito.CreateAuthCommand({
                 AuthFlow: 'ADMIN_NO_SRP_AUTH',
                 UserPoolId: USER_POOL,
                 ClientId: USER_POOL_CLIENT,
@@ -16,14 +16,12 @@ module.exports.login = async (event) => {
                     USERNAME: email ?? `${cpf}@email.com`,
                     PASSWORD: password ?? '012345',
                 },
-            })
-            .promise()
+            }))
 
         const data = await cognito
-            .getUser({
+            .providerClient.send(new cognito.GetUserCommand({
                 AccessToken: response.AuthenticationResult.AccessToken,
-            })
-            .promise()
+            }))
 
         return sendResponse(200, {
             ...formatUserAttributes(data.UserAttributes),
