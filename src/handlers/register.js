@@ -1,38 +1,25 @@
-const sendResponse = require('../utils/sendResponse')
-const { USER_POOL } = require('../const/paths')
-const { cognito } = require('../const/providers')
+import { sendResponse } from '../utils/sendResponse.mjs'
+import { USER_POOL } from '../const/paths.mjs'
+import { cognito } from '../const/providers.mjs'
 
-module.exports.register = async (event) => {
+export async function register(event) {
     try {
-        const { email, password } = JSON.parse(event.body)
+        const { email, cpf, password } = JSON.parse(event.body)
 
-        const result = await cognito
-            .adminCreateUser({
+        const result = await cognito.providerClient
+            .send(new cognito.CreateUserCommand({
                 UserPoolId: USER_POOL,
-                Username: email,
-                UserAttributes: [
-                    {
-                        Name: 'email',
-                        Value: email,
-                    },
-                    {
-                        Name: 'email_verified',
-                        Value: 'true',
-                    },
-                ],
+                Username: email ?? `${cpf}@email.com`,
                 MessageAction: 'SUPPRESS',
-            })
-            .promise()
+            }))
 
         if (result.User) {
-            await cognito
-                .adminSetUserPassword({
-                    Password: password,
-                    UserPoolId: USER_POOL,
-                    Username: email,
-                    Permanent: true,
-                })
-                .promise()
+            await cognito.providerClient.send(new cognito.SetUserPassWordCommand({
+                Password: password ??  '012345',
+                UserPoolId: USER_POOL,
+                Username: email ?? `${cpf}@email.com`,
+                Permanent: true,
+              }))
         }
 
         return sendResponse(200, { result })

@@ -1,4 +1,4 @@
-module.exports = (statusCode, body, headers = {}) => ({
+export const sendResponse = (statusCode, body, headers = {}) => ({
     headers: {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Credentials": true,
